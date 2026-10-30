@@ -1,6 +1,6 @@
 --- a/web/src/app/settings.ts
 +++ b/web/src/app/settings.ts
-@@ -48,13 +48,18 @@
+@@ -48,18 +48,23 @@
    // app
    { key: 'game_folder', env: 'NFSU2_DATA', kind: 'path', scope: 'mac' },
    { key: 'movies', env: 'NOMOVIES', kind: 'boolInv', scope: 'web' },
@@ -13,13 +13,19 @@
    // stall report in the log
    { key: 'watchdog', env: 'NFSU2_WATCHDOG', kind: 'num', scope: 'web' },
 +  // NFSU1 graphics quality; resolution follows the live canvas.
-+  { key: 'graphics_quality', env: 'NFSU1_GRAPHICS', kind: 'enum', vals: 'game|low|medium|high|max', scope: 'web' },
++  { key: 'graphics_quality', env: 'NFSU1_GRAPHICS', kind: 'enum', vals: 'game|low|medium|high|max|mobile', scope: 'web' },
 +  { key: 'widescreen', env: 'NFSU1_WIDESCREEN', kind: 'bool', scope: 'web' },
 +  // Legacy setting is accepted on restore but no longer controls rendering.
 +  { key: 'render_resolution', env: 'NFSU1_RESOLUTION', kind: 'enum', vals: 'game|window|800x600|1280x960|1600x1200|1920x1440|2560x1920', scope: 'web' },
    // display
    { key: 'fullscreen', env: 'NFSFULL', kind: 'bool', scope: 'web' },
    { key: 'native_resolution', env: 'NFSNATIVE', kind: 'bool', scope: 'web' },
+   { key: 'resolution', env: 'NFSRES', kind: 'wxh', scope: 'web' },
+-  { key: 'render', env: 'NFSU2_RENDER', kind: 'enum', vals: 'backing|panel|scale:#|#', scope: 'web' },
++  { key: 'render', env: 'NFSU1_RENDER', kind: 'enum', vals: 'backing|panel|scale:#|#', scope: 'web', device: true },
+   { key: 'max_pixels', env: 'NFSMAXPIX', kind: 'num', scope: 'web' },
+   { key: 'hud', env: 'NFSU2_HUD', kind: 'enum', vals: 'wide|43|4:3', scope: 'web' },
+   { key: 'movie_framing', env: 'NFSU2_MOVIE', kind: 'enum', vals: 'fit|fill|stretch', scope: 'web' },
 @@ -154,10 +159,10 @@
  # Intro, story and FMV movies.  [NOMOVIES, inverted]
  #movies = on
@@ -35,10 +41,11 @@
  #intro = skippable
  
  # Sound output.  [NOSOUND, inverted]
-@@ -192,6 +197,17 @@
+@@ -191,6 +196,17 @@
+ # 0 = off.
  # [NFSU2_WATCHDOG]
  #watchdog = 15
- 
++
 +# ---- NFSU1 graphics ------------------------------------------------------
 +
 +# Game uses the graphics options saved in the game. Other presets apply at
@@ -49,10 +56,9 @@
 +# Render resolution automatically follows the window and full-screen size
 +# at device pixel density. Widescreen FOV/HUD hooks run by default; set
 +# NFSU1_WIDESCREEN=0 to letterbox to the saved guest aspect instead.
-+
+ 
  # ---- Display -------------------------------------------------------------
  
- # Play in the browser window (off), or go full screen when you press Play
 @@ -349,7 +365,7 @@
  // set the autotest "quit" command and the forced-quit path would only raise
  // a flag nobody reads (autotest.c do_quit, lifecycle.c leave).

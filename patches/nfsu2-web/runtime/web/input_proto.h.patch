@@ -1,0 +1,26 @@
+--- a/runtime/web/input_proto.h
++++ b/runtime/web/input_proto.h
+@@ -54,6 +54,7 @@
+     IM_RUMBLE_STRONG = 30,/* wasm: 0..65535, the low-frequency motor */
+     IM_RUMBLE_WEAK = 31,  /* wasm: 0..65535, the high-frequency motor */
+     IM_PAD_RUMBLE = 32,   /* page: 1 when the controller driving the pad can rumble */
++    IM_VIEW_ROLL = 38,    /* page: float bits, radians the 3D view rolls to keep the horizon level (tilt steering) */
+     IM_HDR_WORDS = 64
+ };
+ 
+@@ -69,6 +70,7 @@
+     IEV_FOCUS = 8,        /* a = 1 active / 0 inactive, b = IREASON_* */
+     IEV_RELEASE_ALL = 9,  /* b = IREASON_*: every key and button the game holds goes up */
+     IEV_QUIT = 10,        /* the player asked to quit: WM_CLOSE */
++    IEV_TEXT = 14,        /* nch, ch[0..2] = WM_CHAR bytes (cp1252, 8 = Backspace, 13 = Enter), no key */
+ };
+ enum {                    /* event flags */
+     IKF_REPEAT = 1,       /* autorepeat */
+@@ -77,6 +79,7 @@
+     IKF_SHIFT = 8,        /* Shift held */
+     IKF_DEAD = 16,        /* a dead key: ch[0] = its spacing character */
+     IKF_SYNTH = 32,       /* a synthetic DOM event (autotest), for the log */
++    IKF_TOUCH = 64,       /* mouse move or button from a finger on the screen */
+ };
+ enum {                    /* why the page sent a focus change or a release */
+     IREASON_NONE = 0, IREASON_WINDOW = 1, IREASON_VISIBILITY = 2, IREASON_FULLSCREEN = 3,

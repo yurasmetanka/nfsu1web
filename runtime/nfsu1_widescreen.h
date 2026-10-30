@@ -19,6 +19,7 @@ float nfsu1_widescreen_hud_scale_x(void);
 /* Per-draw canvas: 0 full target, 1 centered, 2 left, 3 right.
  * Named HUD composites inherit their authored group identity. */
 float nfsu1_widescreen_ui_canvas(CPU *c);
+unsigned nfsu1_widescreen_hud_draws(void);
 int nfsu1_ws_hook(CPU *c, uint32_t ip);
 
 #endif

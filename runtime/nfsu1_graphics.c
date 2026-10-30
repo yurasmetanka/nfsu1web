@@ -58,14 +58,35 @@ int nfsu1_graphics_size(uint32_t gw, uint32_t gh, uint32_t *dw, uint32_t *dh){
     if (vh < 2u) vh = 2u;
     vw &= ~1u;
     vh &= ~1u;
+
+    const char *render = getenv("NFSU1_RENDER");
+    if (!render || !*render) render = getenv("NFSU2_RENDER");
+    double scale = 1.0;
+    if (render && *render) {
+        if (!strncasecmp(render, "scale:", 6) || (*render >= '0' && *render <= '9') || *render == '.') {
+            const char *p = strchr(render, ':');
+            double f = atof(p ? p + 1 : render);
+            if (f >= 0.25 && f <= 2.0) scale = f;
+            else fprintf(stderr, "[nfsu1 graphics] NFSU1_RENDER=%s ignored (scale 0.25..2)\n", render);
+        }
+    }
+
     const char *wide = getenv("NFSU1_WIDESCREEN");
     int widescreen = !wide || strcmp(wide, "0");
     if (widescreen) {
         float aspect = (float)vw / (float)vh;
         nfsu1_widescreen_set_display_aspect(aspect);
-        *dw = vw;
-        *dh = vh;
-        nfsu1_widescreen_set_resolution(vw, vh);
+        unsigned rw = (unsigned)(vw * scale);
+        unsigned rh = (unsigned)(vh * scale);
+        if (rw > 8192u) rw = 8192u;
+        if (rh > 8192u) rh = 8192u;
+        if (rw < 2u) rw = 2u;
+        if (rh < 2u) rh = 2u;
+        rw &= ~1u;
+        rh &= ~1u;
+        *dw = rw;
+        *dh = rh;
+        nfsu1_widescreen_set_resolution(rw, rh);
         return 1;
     }
     nfsu1_widescreen_set_display_aspect(0.0f);
@@ -74,8 +95,10 @@ int nfsu1_graphics_size(uint32_t gw, uint32_t gh, uint32_t *dw, uint32_t *dh){
     uint32_t aspect_w = gw / a, aspect_h = gh / a;
     uint32_t units_w = vw / aspect_w, units_h = vh / aspect_h;
     uint32_t units = units_w < units_h ? units_w : units_h;
-    *dw = aspect_w * units;
-    *dh = aspect_h * units;
+    uint32_t rw = (uint32_t)(aspect_w * units * scale);
+    uint32_t rh = (uint32_t)(aspect_h * units * scale);
+    *dw = rw & ~1u;
+    *dh = rh & ~1u;
     return 1;
 }
 
@@ -99,11 +122,13 @@ void nfsu1_graphics_apply(void){
     graphics_resolution();
     const char *preset = getenv("NFSU1_GRAPHICS");
     int level = 3;
+    int is_mobile = 0;
     if (!preset || !*preset) preset = "max";
     if (!strcmp(preset, "game")) return;
     if (!strcmp(preset, "low")) level = 0;
     else if (!strcmp(preset, "medium")) level = 1;
     else if (!strcmp(preset, "high")) level = 2;
+    else if (!strcmp(preset, "mobile")) { level = 1; is_mobile = 1; }
     else if (strcmp(preset, "max")){
         fprintf(stderr, "[nfsu1 graphics] unknown preset '%s'; using max\n", preset);
         preset = "max";
@@ -112,6 +137,25 @@ void nfsu1_graphics_apply(void){
     for (unsigned i = 0; i < sizeof graphics_settings / sizeof graphics_settings[0]; i++){
         const GraphicsSetting *setting = &graphics_settings[i];
         uint32_t requested = setting->level[level];
+        if (is_mobile) {
+            if (!strcmp(setting->name, "ROADREFLECTION")) requested = 0;
+            else if (!strcmp(setting->name, "MOTIONBLUR")) requested = 0;
+            else if (!strcmp(setting->name, "DEPTHOFFIELD")) requested = 0;
+            else if (!strcmp(setting->name, "LIGHTSTREAKS")) requested = 0;
+            else if (!strcmp(setting->name, "WORLDENVMAP")) requested = 0;
+            else if (!strcmp(setting->name, "ENVMAP")) requested = 0;
+            else if (!strcmp(setting->name, "WorldLOD")) requested = 3;
+            else if (!strcmp(setting->name, "CarLOD")) requested = 1;
+            else if (!strcmp(setting->name, "CROWD")) requested = 1;
+            else if (!strcmp(setting->name, "FOG")) requested = 1;
+            else if (!strcmp(setting->name, "LIGHTGLOW")) requested = 1;
+            else if (!strcmp(setting->name, "ANIMATEDTEXTURE")) requested = 1;
+            else if (!strcmp(setting->name, "PARTICLESYSTEMS")) requested = 1;
+            else if (!strcmp(setting->name, "SHADOW")) requested = 1;
+            else if (!strcmp(setting->name, "HEADLIGHTS")) requested = 1;
+            else if (!strcmp(setting->name, "CARLIGHTING")) requested = 1;
+            else if (!strcmp(setting->name, "DAMAGE")) requested = 1;
+        }
         uint32_t cap = MR32(setting->cap_address);
         uint32_t applied = requested < cap ? requested : cap;
         limited += applied != requested;

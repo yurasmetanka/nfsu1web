@@ -15,6 +15,7 @@ control difficulty, transmission and camera.
 | Movie playback | Turn in-game movie playback on or off. |
 | Audio | Sound output and audio response. |
 | When the game loses focus | Pause (default) freezes the game and sound when switching tabs or windows, then resumes on return. Keep running continues the game. The game’s network background-run flag can keep its network screens running with sound muted. Applies on the next launch. |
+| Touch controls | Steering mode (Buttons, Thumb stick, Tilt), Level horizon (during Tilt steering) and Touch controls size (Small, Medium, Large) on mobile/touch devices. |
 | Controller | Device policy, dead zones, trigger threshold and vibration permission. |
 
 Open **Game data** to download or restore a ZIP backup of profiles and settings.
@@ -44,6 +45,10 @@ the resulting actions.
 The game's **Options → Controller → Controller Setup** entry opens keyboard
 configuration too; the original English menu calls the category “Controller”.
 Aliases are stored separately from save backups in browser local storage.
+On phones and tablets, on-screen touch controls automatically switch between
+menu navigation (including a mobile text-entry keyboard button) and driving
+controls (with Buttons, Thumb stick or Tilt steering, Gas-to-Nitro pedal slide
+and gear shift buttons).
 
 Saves use `save-nfsu1`, game-data caching uses `cache-nfsu1`. Keep the same
 host and port to retain the same browser storage.

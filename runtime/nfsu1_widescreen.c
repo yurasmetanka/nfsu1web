@@ -85,6 +85,11 @@ static const hud_entry k_hud[] = {
 #include "widescreen_hud.inc"
 };
 static uint32_t s_fe_instance, s_fe_element;
+static unsigned s_hud_draws;
+
+unsigned nfsu1_widescreen_hud_draws(void) {
+    return s_hud_draws;
+}
 
 static int readable(uint32_t address, uint32_t last) {
     return address && address <= UINT32_MAX - last &&
@@ -109,8 +114,9 @@ static float element_canvas(uint32_t instance, uint32_t element) {
                 if (k_hud[i].hash != hash || k_hud[i].id != id) continue;
                 /* The noninteractive music banner can cross flow changes
                  * while visible; retain one anchor for its whole animation. */
-                if ((hash == 0x82009C1Fu && id == 0x53F4u) ||
-                    MR32(0x0077A920u) == 6u)
+                int race = readable(0x0077A920u, 3u) && MR32(0x0077A920u) == 6u;
+                if (race && hash != 0x82009C1Fu) s_hud_draws++;
+                if ((hash == 0x82009C1Fu && id == 0x53F4u) || race)
                     canvas = (float)k_hud[i].canvas;
                 break;
             }
@@ -134,6 +140,8 @@ void __wrap_sub_004f2cb0(CPU *c) {
     uint32_t previous_instance = s_fe_instance, previous_element = s_fe_element;
     s_fe_instance = c->edi;
     s_fe_element = c->eax;
+    if (s_fe_instance && s_fe_element && readable(0x0077A920u, 3u) && MR32(0x0077A920u) == 6u)
+        (void)element_canvas(s_fe_instance, s_fe_element);
     __real_sub_004f2cb0(c);
     s_fe_instance = previous_instance;
     s_fe_element = previous_element;

@@ -59,6 +59,7 @@ const context = {
   askRoam: async () => {},
   browserBrief: () => 'stub browser',
   canvas,
+  isPhone: () => false,
   displayHz: 60,
   document: { body: { dataset: {} } },
   download: { async pause() {}, resume() {} },

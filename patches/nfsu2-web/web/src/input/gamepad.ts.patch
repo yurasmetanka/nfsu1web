@@ -1,0 +1,60 @@
+--- a/web/src/input/gamepad.ts
++++ b/web/src/input/gamepad.ts
+@@ -25,6 +25,18 @@
+ } from './proto';
+ 
+ export interface PadSnapshot { connected: boolean; buttons: number; axes: number[]; family: number; name: string; index: number }
++/** the touch controls' virtual controller (merged with a real one if any) */
++export interface TouchPad { buttons: number; lx: number }
++
++export function withTouch(s: PadSnapshot, t: TouchPad | null): PadSnapshot {
++  if (!t) return s;
++  const axes = [...s.axes];
++  if (Math.abs(t.lx) > Math.abs(axes[PAD_AXIS_LX])) axes[PAD_AXIS_LX] = Math.max(-1, Math.min(1, t.lx));
++  return {
++    connected: true, buttons: s.buttons | t.buttons, axes,
++    family: s.connected ? s.family : PADF_XBOX, name: s.connected ? s.name : 'Touch controls', index: s.index,
++  };
++}
+ 
+ // standard mapping: buttons[i] -> PAD_* (6 and 7 are the analog triggers)
+ const BUTTON_OF: (number | -1)[] = [PAD_A, PAD_B, PAD_X, PAD_Y, PAD_LB, PAD_RB, -1, -1, PAD_BACK, PAD_START,
+@@ -64,6 +76,9 @@
+   private order: number[] = [];            // controller indices in connection order
+   private active = -1;
+   private last: PadSnapshot | null = null;
++  private touch: TouchPad | null = null;
++  /** performance.now() of a real controller's last button press (0: none) */
++  lastPress = 0;
+   private f32 = new Float32Array(1);
+   private i32 = new Int32Array(this.f32.buffer);
+   private pressedBefore = 0;
+@@ -107,6 +122,9 @@
+   /** the controller driving the pad, or null */
+   current(): string | null { return this.last?.connected ? this.last.name : null; }
+ 
++  /** the touch controls' virtual controller (null: off); published at once */
++  setTouch(t: TouchPad | null) { this.touch = t; this.poll(); }
++
+   poll() {
+     if (!this.h) return;
+     const pads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
+@@ -121,12 +139,13 @@
+       this.active = pick ?? -1;
+       if (g && g.mapping !== 'standard') this.log(`[pad] ${g.id}: no standard mapping in this browser, read as if it had one`);
+     }
+-    const s: PadSnapshot = g ? mapStandard(g) : { connected: false, buttons: 0, axes: [0, 0, 0, 0, 0, 0], family: PADF_GENERIC, name: '', index: -1 };
++    const real: PadSnapshot = g ? mapStandard(g) : { connected: false, buttons: 0, axes: [0, 0, 0, 0, 0, 0], family: PADF_GENERIC, name: '', index: -1 };
+     this.rumble(g);
+-    const pressed = s.buttons & ~this.pressedBefore;
+-    this.pressedBefore = s.buttons;
+-    if (pressed) this.onPress();
+-    if (pressed || s.axes.some((v, i) => Math.abs(v - this.usedAxes[i]) > 0.25)) { this.usedAxes = s.axes; this.onUse?.(); }
++    const pressed = real.buttons & ~this.pressedBefore;
++    this.pressedBefore = real.buttons;
++    if (pressed) { this.lastPress = performance.now(); this.onPress(); }
++    if (pressed || real.axes.some((v, i) => Math.abs(v - this.usedAxes[i]) > 0.25)) { this.usedAxes = real.axes; this.onUse?.(); }
++    const s = withTouch(real, this.touch);
+     if (this.same(s)) return;
+     this.publish(s, !this.last || this.last.connected !== s.connected || this.last.index !== s.index || this.last.name !== s.name);
+     this.last = s;

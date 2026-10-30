@@ -38,13 +38,15 @@ apply_patches() {
 }
 
 copy_host() {
-  install -d "$UPSTREAM/web/src/app"
+  install -d "$UPSTREAM/web/src/app" "$UPSTREAM/web/src/gpu"
   install -m 0644 "$ROOT/browser/menu.ts" "$UPSTREAM/web/src/app/menu.ts"
   install -m 0644 "$ROOT/browser/keyboard.ts" "$UPSTREAM/web/src/app/keyboard.ts"
+  install -m 0644 "$ROOT/browser/touch.ts" "$UPSTREAM/web/src/app/touch.ts"
+  install -m 0644 "$ROOT/browser/astc.ts" "$UPSTREAM/web/src/gpu/astc.ts"
 }
 
 remove_host() {
-  rm -f "$UPSTREAM/web/src/app/menu.ts" "$UPSTREAM/web/src/app/keyboard.ts"
+  rm -f "$UPSTREAM/web/src/app/menu.ts" "$UPSTREAM/web/src/app/keyboard.ts" "$UPSTREAM/web/src/app/touch.ts" "$UPSTREAM/web/src/gpu/astc.ts"
 }
 
 if [[ "$REVERT" -eq 1 ]]; then
