@@ -1,0 +1,27 @@
+--- a/web/src/app/contract.ts
++++ b/web/src/app/contract.ts
+@@ -4,6 +4,7 @@
+ // shapes.  See web/src/host/abi.ts for the shared-memory side (nfsu2_register
+ // kinds).
+ import type { GameProcess } from '../host/process';
++import type { TouchPad } from '../input/gamepad';
+ 
+ /** Given to every subsystem. */
+ export interface CommonOptions {
+@@ -81,6 +82,16 @@
+   /** performance.now() of the player's last key, mouse or controller input; null: the page cannot tell
+    *  (the game's own driver plays an input script) */
+   lastInput?(): number | null;
++  /** the touch controls (touch.ts): a key pressed or let go for the player, by KeyboardEvent.code */
++  key?(code: string, down: boolean): void;
++  /** the touch controls' virtual controller, merged with a real one (null: none) */
++  touchPad?(t: TouchPad | null): void;
++  /** the touch controls' level horizon: the phone's tilt the game's 3D view turns against, radians, + = clockwise */
++  viewRoll?(rad: number): void;
++  /** performance.now() of a real controller's last button press (0: none) */
++  padPressed?(): number;
++  /** characters typed with no key (a phone's keyboard), cp1252: WM_CHAR each, 8 deletes, 13 accepts */
++  text?(chars: number[]): void;
+ }
+ 
+ export interface NetSubsystem extends Subsystem {

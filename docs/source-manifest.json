@@ -585,5 +585,31 @@
     "evidence": "Read-only PC 1.4 road-pass trace, user browser capture of VS1/PS1 with FVF20142 and stale declaration088004E0, and local command-line shader dump showing FLOAT2 UV declaration and existing PS1 projection.",
     "reuse": "Pinned th0mk/nfsu2-web renderer and existing tcoord helper; existing MIT notice retained. D9VK issue 197 used for symptom comparison only; no D9VK code reused.",
     "validation": "Authored-vertex FVF declaration smoke with actual CPU shader execution and generated WGSL inspection; Wasm link and browser bundle. User confirmed the minimap works after testing build nfsu1-local-29bd80b573e6; no browser operated by the agent."
+  },
+  "touch_controls": {
+    "date": "2026-10-28",
+    "repository": "th0mk/nfsu2-web",
+    "commit": "06ff5110bf7fd5a0d8f274410ef317f6fd0f2341",
+    "paths": [
+      "browser/touch.ts",
+      "browser/menu.ts",
+      "browser/menu.html",
+      "browser/menu.css",
+      "runtime/nfsu1_widescreen.c",
+      "runtime/nfsu1_widescreen.h",
+      "patches/nfsu2-web/runtime/web/input_proto.h.patch",
+      "patches/nfsu2-web/runtime/web/input_web.c.patch",
+      "patches/nfsu2-web/runtime/web/status_web.c.patch",
+      "patches/nfsu2-web/web/index.html.patch",
+      "patches/nfsu2-web/web/src/app/contract.ts.patch",
+      "patches/nfsu2-web/web/src/app/shell.ts.patch",
+      "patches/nfsu2-web/web/src/app/style.css.patch",
+      "patches/nfsu2-web/web/src/input/gamepad.ts.patch",
+      "patches/nfsu2-web/web/src/input/index.ts.patch",
+      "patches/nfsu2-web/web/src/input/proto.ts.patch"
+    ],
+    "license": "MIT; patches/nfsu2-web.LICENSE",
+    "implementation": "Port mobile touch controls (menu D-pad, OK/Back/Keyboard text-entry bar, driving pedals with Gas-to-Nitro slide, gear buttons, Buttons/Thumb-stick/Tilt steering, 1-finger touch-to-mouse with 1-change-per-frame step queue and 2-finger drag, portrait layout and screen wake lock) from th0mk/nfsu2-web to NFSU1's native key and race-HUD state.",
+    "validation": "TypeScript check, esbuild bundle, browser startup smoke, keyboard smoke and touch controls smoke."
   }
 }

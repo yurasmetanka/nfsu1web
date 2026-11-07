@@ -1,0 +1,26 @@
+--- a/web/src/input/proto.ts
++++ b/web/src/input/proto.ts
+@@ -36,6 +36,7 @@
+ export const IM_RUMBLE_STRONG = 30; // wasm: 0..65535, the low-frequency motor
+ export const IM_RUMBLE_WEAK = 31;   // wasm: 0..65535, the high-frequency motor
+ export const IM_PAD_RUMBLE = 32;    // page: 1 when the controller driving the pad can rumble
++export const IM_VIEW_ROLL = 38;     // page: float bits, the phone's tilt the 3D view turns against (radians, + = clockwise)
+ export const IM_HDR_WORDS = 64;
+ 
+ // events, page -> wasm
+@@ -49,6 +50,7 @@
+ export const IEV_FOCUS = 8;
+ export const IEV_RELEASE_ALL = 9;
+ export const IEV_QUIT = 10;
++export const IEV_TEXT = 14;         // ch[0..nch-1]: cp1252 characters typed with no key (a phone's keyboard)
+ 
+ export const IKF_REPEAT = 1;
+ export const IKF_ALT = 2;
+@@ -56,6 +58,7 @@
+ export const IKF_SHIFT = 8;
+ export const IKF_DEAD = 16;
+ export const IKF_SYNTH = 32;
++export const IKF_TOUCH = 64;        // mouse move: from a finger landing on the screen
+ 
+ export const IREASON_NONE = 0;
+ export const IREASON_WINDOW = 1;

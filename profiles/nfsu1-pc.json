@@ -36,7 +36,7 @@
     },
     "sha256": "c0fad450912952f53809a54690d235aa8b4e25b9f46650693c7cbee1b4c074b7",
     "sha256_status": "measured_local_candidate_matches_upstream_abbreviated_digest_full_reference_not_published",
-    "catalog_sha256": "11c6014df7e7ad9e9c47ae12d1bd25b8b094b26dfb4aa1fab08d34f67c8d068e",
+    "catalog_sha256": "9baada39666f460d3dba97bd68819cf11198599561db2644c7676a1bf1dff1b0",
     "catalog_status": "generated_locally_using_original_seeded_analysis_pipeline_and_cached",
     "ready_for_game_execution": false,
     "local_archive_member": {

@@ -1,6 +1,6 @@
 --- a/web/src/app/settings-ui.ts
 +++ b/web/src/app/settings-ui.ts
-@@ -21,54 +21,28 @@
+@@ -21,54 +21,29 @@
  interface Group { title: string; items: Item[]; status?: boolean; own?: boolean }
  
  const GROUPS: Group[] = [
@@ -20,10 +20,11 @@
 -    { key: 'roam_extrap', label: 'Longest extrapolation', help: 'How long another player\'s car keeps moving on its own when updates are late, 0 to 1000.', c: { t: 'num', min: 0, max: 1000, step: 10, unit: 'ms' }, more: true },
 -    { key: 'roam_carpool_kb', label: 'Car memory pool', help: 'In KB; never below the game\'s own 11000.', c: { t: 'num', min: 0, max: 128000, step: 1000, unit: 'KB' }, more: true },
 +  { title: 'Graphics', items: [
-+    { key: 'graphics_quality', label: 'Graphics quality', help: 'Choose a detail level. Game uses the settings saved in the game.', c: { t: 'seg', opts: [['game', 'Game'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['max', 'Maximum']] } },
++    { key: 'graphics_quality', label: 'Graphics quality', help: 'Choose a detail level. Mobile turns off heavy reflections and post effects for smooth frame rates on phones. Game uses the settings saved in the game.', c: { t: 'seg', opts: [['game', 'Game'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['max', 'Maximum'], ['mobile', 'Mobile']] } },
++    { key: 'render', label: 'Resolution scale', help: 'Scales render resolution. 75% or 50% reduces pixel fill rate for faster rendering on high-DPI mobile screens.', c: { t: 'seg', opts: [['scale:0.5', '50%'], ['scale:0.75', '75%'], ['backing', '100%']] } },
 +    { key: 'widescreen', label: 'Widescreen', help: 'Use a widescreen view. Turn off for the original 4:3 view.', c: { t: 'switch' } },
    ] },
--  { title: 'Game', items: [
+   { title: 'Game', items: [
 -    { key: 'movies', label: 'Movies', help: 'Intro, story and FMV movies.', c: { t: 'switch' } },
 -    { key: 'autosave', label: 'Autosave', help: 'Sets each profile\'s Save option in the game to Autosave once, so races, purchases and changes are saved without asking. Prompt or Off chosen afterwards in the game\'s Options, Gameplay stays.', c: { t: 'switch' } },
 -    { key: 'intro', label: 'Startup movies', help: 'The EA and THX logos, the PSA and the intro. Skippable: Enter, Esc, Space, a left click, or A, B or Start ends each one. Original: as in the game, where only the intro ends early.', c: { t: 'seg', opts: [['skippable', 'Skippable'], ['original', 'Original'], ['off', 'Off']] }, more: true },
@@ -33,14 +34,7 @@
 -    { key: 'seed_registry', label: 'Highest graphics for a new save', help: 'The game\'s own graphics options at their highest, at this screen\'s resolution. Off lets the game run its own hardware check.', c: { t: 'switch' }, more: true },
 -    { key: 'quit_grace', label: 'Time to quit', help: 'Seconds the game gets to shut down after Quit game before it is stopped.', c: { t: 'num', min: 0, step: 1, unit: 's' }, more: true },
 -    { key: 'watchdog', label: 'Stall report', help: 'Seconds without a frame before the log gets a report of every game thread (0 = off).', c: { t: 'num', min: 0, step: 1, unit: 's' }, more: true },
-+  { title: 'Game', items: [
-+    { key: 'intro', label: 'Startup movies', help: 'Skippable lets you skip them. Original keeps the game’s usual behavior. Off skips them automatically.', c: { t: 'seg', opts: [['skippable', 'Skippable'], ['original', 'Original'], ['off', 'Off']] } },
-+    { key: 'movies', label: 'Movie playback', help: 'Turn in-game movie playback on or off.', c: { t: 'switch' } },
-+  ] },
-+  { title: 'Audio', items: [
-+    { key: 'sound', label: 'Sound output', help: 'Enable game audio. Music, engine and effects levels can be adjusted in the game’s Options menu.', c: { t: 'switch' } },
-+    { key: 'audio_latency', label: 'Audio response', help: 'Low reduces delay. Robust can prevent dropouts on slower computers.', c: { t: 'seg', opts: [['interactive', 'Low'], ['balanced', 'Balanced'], ['playback', 'Robust']] } },
-   ] },
+-  ] },
 -  { title: 'Display', items: [
 -    { key: 'fullscreen', label: 'Full screen on Play', help: 'Off plays in this browser window; F9 has full screen while you play. Hold Esc to leave it.', c: { t: 'switch' } },
 -    { key: 'render', label: 'Resolution scale', help: 'Scales the game\'s screen-size resolution (its default), per side: 50% renders a quarter of the pixels. Lower is faster and softer.', c: { t: 'seg', opts: [['scale:0.5', '50%'], ['scale:0.75', '75%'], ['backing', '100%'], ['scale:1.5', '150%'], ['scale:2', '200%']] } },
@@ -54,18 +48,24 @@
 -    { key: 'max_pixels', label: 'Pixel limit', help: 'Most pixels the screen-size resolution renders (0 = no limit).', c: { t: 'num', min: 0, step: 100000 }, more: true },
 -    { key: 'hfr_fixes', label: 'High-frame-rate fixes', help: 'For the parts of the game that count frames: default, all, none, or a list of ticks, timer, particles, trail, audio, rtf.', c: { t: 'text', placeholder: 'default' }, more: true },
 -    { key: 'nos_trail_length', label: 'Nitrous trail length', help: 'Length factor of the nitrous and speed-streak trails (1 = normal).', c: { t: 'num', min: 0, step: 0.1 }, more: true },
++    { key: 'intro', label: 'Startup movies', help: 'Skippable lets you skip them. Original keeps the game’s usual behavior. Off skips them automatically.', c: { t: 'seg', opts: [['skippable', 'Skippable'], ['original', 'Original'], ['off', 'Off']] } },
++    { key: 'movies', label: 'Movie playback', help: 'Turn in-game movie playback on or off.', c: { t: 'switch' } },
++  ] },
++  { title: 'Audio', items: [
++    { key: 'sound', label: 'Sound output', help: 'Enable game audio. Music, engine and effects levels can be adjusted in the game’s Options menu.', c: { t: 'switch' } },
++    { key: 'audio_latency', label: 'Audio response', help: 'Low reduces delay. Robust can prevent dropouts on slower computers.', c: { t: 'seg', opts: [['interactive', 'Low'], ['balanced', 'Balanced'], ['playback', 'Robust']] } },
++  ] },
 +  { title: 'Browser', items: [
 +    { key: 'background', label: 'When the game loses focus', help: 'Pause freezes the game and its sound when you switch tabs or windows, and resumes when you return. The game’s network screens can keep running with sound muted. Keep running continues the game.', c: { t: 'seg', opts: [['pause', 'Pause'], ['run', 'Keep running']] } },
 +    { key: 'fullscreen', label: 'Full screen on Play', help: 'Open the game full screen when the browser allows it.', c: { t: 'switch' } },
    ] },
--  { title: 'Controller', items: [
+   { title: 'Controller', items: [
 -    { key: 'rumble', label: 'Rumble', help: 'On controllers that have it: crashes, hard landings and the game\'s own force feedback.', c: { t: 'switch' } },
 -    { key: 'gamepad', label: 'Controller', help: 'On keeps a controller once it was connected; hotplug only while connected.', c: { t: 'seg', opts: [['on', 'On'], ['hotplug', 'Hotplug'], ['off', 'Off']] }, more: true },
 -    { key: 'gamepad_menu_keys', label: 'Menu buttons', help: 'A, B and View also act as Enter, Esc and Q in the menus.', c: { t: 'switch' }, more: true },
 -    { key: 'gamepad_deadzone', label: 'Stick dead zone', help: 'Fraction of full travel, 0 to 0.9.', c: { t: 'num', min: 0, max: 0.9, step: 0.01 }, more: true },
 -    { key: 'gamepad_trigger_deadzone', label: 'Trigger dead zone', help: 'Fraction of full travel, 0 to 0.9.', c: { t: 'num', min: 0, max: 0.9, step: 0.01 }, more: true },
 -    { key: 'gamepad_trigger_click', label: 'Trigger full press', help: 'How far a trigger travels before it counts as fully pressed (full throttle, full brake).', c: { t: 'num', min: 0, max: 1, step: 0.01 }, more: true },
-+  { title: 'Controller', items: [
 +    { key: 'gamepad', label: 'Controller', help: 'Use a connected controller.', c: { t: 'seg', opts: [['on', 'On'], ['hotplug', 'While connected'], ['off', 'Off']] } },
 +    { key: 'gamepad_deadzone', label: 'Stick dead zone', help: 'Ignore small stick movements to prevent drift.', c: { t: 'num', min: 0, max: 0.9, step: 0.01 } },
 +    { key: 'gamepad_trigger_deadzone', label: 'Trigger dead zone', help: 'Ignore slight trigger input.', c: { t: 'num', min: 0, max: 0.9, step: 0.01 } },
@@ -74,7 +74,7 @@
    ] },
  ];
  
-@@ -284,6 +258,11 @@
+@@ -284,6 +259,11 @@
    private row(it: Item): HTMLElement {
      const def = keyDef(it.key)!;
      const row = document.createElement('div'); row.className = 'set'; row.dataset.key = it.key;
@@ -86,7 +86,7 @@
      const id = `set-${it.key}`;
      const cur = this.current(it.key);
      const f = this.resolved.file[it.key];
-@@ -295,6 +274,7 @@
+@@ -295,6 +275,7 @@
      if (label instanceof HTMLLabelElement) label.htmlFor = id;
      const help = document.createElement('p'); help.className = 'set-help'; help.id = `${id}-help`; help.textContent = it.help;
      const ctl = document.createElement('div'); ctl.className = 'set-control';
@@ -94,7 +94,7 @@
      let described: HTMLElement;                      // what aria-describedby goes on
      if (c.t === 'switch') {
        const on = boolOn(cur || 'off');
-@@ -307,6 +287,7 @@
+@@ -307,6 +288,7 @@
        described = b;
      } else if (c.t === 'seg') {
        const seg = document.createElement('div'); seg.className = 'seg';

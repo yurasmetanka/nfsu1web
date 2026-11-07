@@ -1,14 +1,62 @@
 --- a/web/src/input/index.ts
 +++ b/web/src/input/index.ts
-@@ -25,6 +25,7 @@
+@@ -25,15 +25,16 @@
  import type { GameProcess } from '../host/process';
  import { HostKind } from '../host/abi';
  import { CODES, cp1252, isMeta, keyChars, keyVk } from './keymap';
+-import { PadPoller } from './gamepad';
 +import { translateKeyboardEvent } from '../app/keyboard';
- import { PadPoller } from './gamepad';
++import { PadPoller, type TouchPad } from './gamepad';
  import { SynthDriver } from './synth';
  import {
-@@ -115,8 +116,15 @@
+   IEV_FOCUS, IEV_KEY_DOWN, IEV_KEY_TAP, IEV_KEY_UP, IEV_MOUSE_DOWN, IEV_MOUSE_MOVE, IEV_MOUSE_UP, IEV_QUIT,
+-  IEV_RELEASE_ALL, IEV_WHEEL, IKF_ALT, IKF_CTRL, IKF_DEAD, IKF_REPEAT, IKF_SHIFT, IKF_SYNTH, IM_ATTACHED, IM_EV_DROP,
+-  IM_EV_R, IM_EV_W, IM_EVENTS, IM_GAME_INACTIVE, IM_HDR_WORDS, IM_KEYS_HELD, IM_MAGIC, IM_MOUSE_X, IM_MOUSE_Y,
+-  IM_NAMES_GEN, IM_OFF_EV, IM_OFF_NAMES, IM_OFF_SYN, IM_QUIT_REQ, IM_SYN_R, IM_SYN_W, IM_VERSION, INPUT_EV_N,
+-  INPUT_MAGIC, INPUT_NAME_LEN, INPUT_SYN_N, INPUT_VERSION, IREASON_ELEMENT, IREASON_FULLSCREEN, IREASON_META,
+-  IREASON_PAGE, IREASON_PAGEHIDE, IREASON_SCRIPT, IREASON_VISIBILITY, IREASON_WINDOW,
++  IEV_RELEASE_ALL, IEV_TEXT, IEV_WHEEL, IKF_ALT, IKF_CTRL, IKF_DEAD, IKF_REPEAT, IKF_SHIFT, IKF_SYNTH, IKF_TOUCH,
++  IM_ATTACHED, IM_EV_DROP, IM_EV_R, IM_EV_W, IM_EVENTS, IM_GAME_INACTIVE, IM_HDR_WORDS, IM_KEYS_HELD, IM_MAGIC,
++  IM_MOUSE_X, IM_MOUSE_Y, IM_NAMES_GEN, IM_OFF_EV, IM_OFF_NAMES, IM_OFF_SYN, IM_QUIT_REQ, IM_SYN_R, IM_SYN_W,
++  IM_VERSION, IM_VIEW_ROLL, INPUT_EV_N, INPUT_MAGIC, INPUT_NAME_LEN, INPUT_SYN_N, INPUT_VERSION, IREASON_ELEMENT,
++  IREASON_FULLSCREEN, IREASON_META, IREASON_PAGE, IREASON_PAGEHIDE, IREASON_SCRIPT, IREASON_VISIBILITY, IREASON_WINDOW,
+ } from './proto';
+ 
+ export interface ViewRect { x: number; y: number; w: number; h: number }
+@@ -79,6 +80,16 @@
+   /** performance.now() of the player's last key, mouse or controller input (the attach before any); null
+    *  while the game's own driver writes the event ring (an input script without the page's input) */
+   lastInput(): number | null;
++  /** a key the page presses or lets go for the player (the touch controls), by KeyboardEvent.code */
++  key(code: string, down: boolean): void;
++  /** the touch controls' virtual controller, merged with a real one (null: none) */
++  touchPad(t: TouchPad | null): void;
++  /** the touch controls' level horizon: the phone's tilt the game's 3D view turns against, radians, + = clockwise */
++  viewRoll(rad: number): void;
++  /** performance.now() of a real controller's last button press (0: none) */
++  padPressed(): number;
++  /** characters typed with no key (a phone's keyboard), cp1252: WM_CHAR each, 8 deletes, 13 accepts */
++  text(chars: number[]): void;
+   /** diagnostic: n empty events, each timed from the page's write until the
+    *  input thread has handled it (busy-waits on the main thread, max 20 ms each);
+    *  returns the times in microseconds */
+@@ -88,6 +99,7 @@
+ 
+ /** what counts as the player's use of keyboard and mouse (lastInput) */
+ const USE_EVENTS = ['keydown', 'pointerdown', 'pointermove', 'wheel'];
++const PAGE_KEY_CHARS: Record<string, number[]> = { Enter: [13], Escape: [27], Backspace: [8] };
+ 
+ const detectMac = () => {
+   const p = (navigator as unknown as { userAgentData?: { platform?: string } }).userAgentData?.platform ?? navigator.platform ?? '';
+@@ -107,6 +119,7 @@
+   let active: boolean | null = null;
+   let pads: PadPoller | null = null, synth: SynthDriver | null = null;
+   let raf = 0, timer = 0, detached = false;
++  const f32 = new Float32Array(1), f32Bits = new Int32Array(f32.buffer);
+   // the mailbox was not ours (another writer, another layout): requests cannot reach the game
+   let refused = false;
+   // quit requests made before the mailbox registered: sent once it does
+@@ -115,8 +128,15 @@
    let lastUse = performance.now();
    const onUse = () => { lastUse = performance.now(); };
  
@@ -24,7 +72,7 @@
      if (!h || !u8 || !i32) return;
      const w = Atomics.load(h, IM_EV_W), r = Atomics.load(h, IM_EV_R);
      if (((w - r) >>> 0) >= INPUT_EV_N) { Atomics.add(h, IM_EV_DROP, 1); dropped.n++; return; }
-@@ -148,7 +156,11 @@
+@@ -148,7 +168,11 @@
    const vkOf = (code: string, e: KeyboardEvent, vk: number) => keyVk(code, e, vk, layout);
    const charsOf = (code: string, e: KeyboardEvent) => keyChars(code, e, mac, layout);
    function onKeyDown(e: KeyboardEvent) {
@@ -37,7 +85,7 @@
      if (isMeta(e.code) || e.key === 'Meta') {
        if (!e.repeat) push(IEV_RELEASE_ALL, 0, 0, 0, [], 0, IREASON_META);
        return;
-@@ -158,12 +170,24 @@
+@@ -158,12 +182,24 @@
        if (mac && e.code === 'KeyF' && !e.repeat) { e.preventDefault(); if (opts.toggleFullscreen) opts.toggleFullscreen(); else void api.toggleFullscreen(); }
        return;
      }
@@ -65,7 +113,7 @@
    }
    function onKeyUp(e: KeyboardEvent) {
      // every release goes to the game, even one aimed at the page's own UI:
-@@ -171,11 +195,18 @@
+@@ -171,11 +207,18 @@
      // ignores releases of keys the game does not hold)
      if (detached) return;
      if (isMeta(e.code) || e.key === 'Meta') return;
@@ -89,7 +137,78 @@
    }
  
    // ---- mouse -------------------------------------------------------------------
-@@ -329,6 +360,8 @@
+@@ -196,13 +239,15 @@
+     buttons = now;
+   }
+   function onPointerMove(e: PointerEvent) {
+-    if (detached || e.pointerType === 'touch') return;
++    if (detached) return;
++    if (e.pointerType === 'touch') { onFingerMove(e); return; }
+     const [x, y] = pos(e);
+     push(IEV_MOUSE_MOVE, 0, 0, flagsOf(e), [], x, y);
+     if ((e.buttons & 31) !== buttons) syncButtons(e);
+   }
+   function onPointerDown(e: PointerEvent) {
+-    if (detached || e.pointerType === 'touch') return;
++    if (detached) return;
++    if (e.pointerType === 'touch') { onFingerDown(e); return; }
+     try { element.setPointerCapture(e.pointerId); } catch { /* a synthetic pointer */ }
+     const [x, y] = pos(e);
+     push(IEV_MOUSE_MOVE, 0, 0, flagsOf(e), [], x, y);
+@@ -211,9 +256,31 @@
+     e.preventDefault();
+   }
+   function onPointerUp(e: PointerEvent) {
+-    if (detached || e.pointerType === 'touch') return;
++    if (detached) return;
++    if (e.pointerType === 'touch') { onFingerUp(e); return; }
+     syncButtons(e);                                        // a release is delivered even outside the image
+     try { element.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
++  }
++
++  // ---- touch: primary finger acts as mouse for UI clicks (car rotation disabled) ----
++  let finger = -1;
++  function onFingerDown(e: PointerEvent) {
++    if (!e.isPrimary) return;
++    finger = e.pointerId;
++    push(IEV_MOUSE_MOVE, 0, 0, flagsOf(e) | IKF_TOUCH, [], ...pos(e));
++    push(IEV_MOUSE_DOWN, 0, 0, flagsOf(e), [], 0);
++    buttons |= 1;
++    if (document.activeElement !== element && element.tabIndex >= 0) element.focus({ preventScroll: true });
++    e.preventDefault();
++  }
++  function onFingerMove(e: PointerEvent) {
++    if (e.pointerId === finger) push(IEV_MOUSE_MOVE, 0, 0, flagsOf(e), [], ...pos(e));
++  }
++  function onFingerUp(e: PointerEvent) {
++    if (e.pointerId !== finger) return;
++    finger = -1;
++    push(IEV_MOUSE_UP, 0, 0, flagsOf(e), [], 0);
++    buttons &= ~1;
+   }
+   function onWheel(e: WheelEvent) {
+     if (detached) return;
+@@ -321,14 +388,28 @@
+       return { 'input events': s.events, 'keys held': s.keysHeld, 'pad connected': s.pad ? 1 : 0, 'input dropped': s.dropped };
+     },
+     lastInput() { return refused ? null : lastUse; },
++    key(code, down) {
++      const k = CODES[code];
++      if (k && !detached) push(down ? IEV_KEY_DOWN : IEV_KEY_UP, k.dik, k.vk, 0, down ? PAGE_KEY_CHARS[code] ?? [] : []);
++    },
++    touchPad(t) { pads?.setTouch(t); },
++    viewRoll(rad) { if (h && !detached) { f32[0] = rad; Atomics.store(h, IM_VIEW_ROLL, f32Bits[0]); } },
++    padPressed() { return pads?.lastPress ?? 0; },
++    text(chars) {
++      if (detached) return;
++      for (let i = 0; i < chars.length; i += 3) push(IEV_TEXT, 0, 0, 0, chars.slice(i, i + 3));
++    },
+     detach() {
+       if (detached) return;
+       // whatever the game holds is let go (it may outlive the page's input, e.g. a test page)
+       push(IEV_RELEASE_ALL, 0, 0, 0, [], 0, IREASON_PAGE);
++      api.viewRoll(0);
+       if (h) Atomics.compareExchange(h, IM_ATTACHED, 1, 0);   // only our own claim (2 = the C ns* driver)
        detached = true; quitPending = 0; cancelAnimationFrame(raf); clearInterval(timer);
        pads?.dispose(); pads = null; synth = null;
        h = null; u8 = null; i32 = null; synF32 = null;     // no view of the old process's memory stays reachable
@@ -98,7 +217,7 @@
        kbTarget.removeEventListener('keydown', onKeyDown as EventListener, { capture: true });
        kbTarget.removeEventListener('keyup', onKeyUp as EventListener, { capture: true });
        for (const [t, f] of listeners) element.removeEventListener(t, f);
-@@ -340,6 +373,10 @@
+@@ -340,6 +421,10 @@
      },
    };
  

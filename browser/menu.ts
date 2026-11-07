@@ -1,7 +1,10 @@
 import { mountKeyboardControls } from './keyboard';
+import { markTouch, mountTouchSettings, noPinchZoom } from './touch';
 
 /** Page navigation stays outside the game canvas and its input handlers. */
 export function mountMenu() {
+  markTouch();
+  noPinchZoom();
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-screen]')];
   const screens = [...document.querySelectorAll<HTMLElement>('[data-menu-screen]')];
   const show = (name: string) => {
@@ -19,8 +22,17 @@ export function mountMenu() {
   new MutationObserver(() => {
     if (document.body.dataset.phase === 'error') show('play');
   }).observe(document.body, { attributes: true, attributeFilter: ['data-phase'] });
-  mountKeyboardControls(document.querySelector<HTMLElement>('#keyboard-controls')!);
+  const kbRoot = document.querySelector<HTMLElement>('#keyboard-controls');
+  let touchRoot = document.querySelector<HTMLElement>('#touch-controls');
+  if (!touchRoot && kbRoot?.parentElement) {
+    touchRoot = document.createElement('div');
+    touchRoot.id = 'touch-controls';
+    kbRoot.parentElement.insertBefore(touchRoot, kbRoot);
+  }
+  mountTouchSettings(touchRoot);
+  if (kbRoot) mountKeyboardControls(kbRoot);
   mountControllerSettings();
+  initPwaInstall();
   show('play');
 }
 
@@ -36,4 +48,23 @@ function mountControllerSettings(): void {
   };
   new MutationObserver(move).observe(source, { childList: true, subtree: true });
   move();
+}
+
+function initPwaInstall(): void {
+  let deferredInstall: any = null;
+  window.addEventListener('beforeinstallprompt', (e: Event) => {
+    e.preventDefault();
+    deferredInstall = e;
+    const btn = document.querySelector<HTMLButtonElement>('#pwa-install-btn');
+    if (btn) {
+      btn.style.display = 'inline-flex';
+      btn.onclick = async () => {
+        if (!deferredInstall) return;
+        deferredInstall.prompt();
+        const choice = await deferredInstall.userChoice;
+        if (choice.outcome === 'accepted') btn.style.display = 'none';
+        deferredInstall = null;
+      };
+    }
+  });
 }

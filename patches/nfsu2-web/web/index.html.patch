@@ -1,7 +1,14 @@
 --- a/web/index.html
 +++ b/web/index.html
-@@ -5,143 +5,79 @@
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+@@ -2,146 +2,119 @@
+ <html lang="en">
+ <head>
+ <meta charset="utf-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
++<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
++<meta name="mobile-web-app-capable" content="yes">
++<meta name="apple-mobile-web-app-capable" content="yes">
++<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
  <meta name="color-scheme" content="dark">
  <meta name="theme-color" content="#0d0d0d">
 -<title>Underground 2 Revived</title>
@@ -62,11 +69,11 @@
 -        <p class="hint">Fan project. Not affiliated with or endorsed by Electronic Arts.</p>
 -        <a class="btn" href="https://discord.gg/25zXmQ2Ua9" target="_blank" rel="noopener noreferrer"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/></svg>Discord</a>
 -      </div>
-+      <h1 class="wordmark"><span class="wordmark-small">Need for Speed</span><span class="wordmark-name">Underground</span></h1>
-     </div>
+-    </div>
 -    <div class="bar" id="progress" role="progressbar" aria-label="Game loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
 -      <div class="bar-fill" id="progress-fill"></div>
--    </div>
++      <h1 class="wordmark"><span class="wordmark-small">Need for Speed</span><span class="wordmark-name">Underground</span></h1>
+     </div>
 +    <div class="bar" id="progress" role="progressbar" aria-label="Game loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar-fill" id="progress-fill"></div></div>
    </header>
  
@@ -100,9 +107,7 @@
        <ul class="problems" id="problems" aria-live="polite"></ul>
        <p class="msg warn" id="override" hidden></p>
      </section>
-+      <div class="screen-strip"><span><kbd>Enter</kbd> Start</span><span><kbd>F9</kbd> Menu while playing</span></div>
-+    </div>
- 
+-
 -    <section class="panel" id="controls" aria-labelledby="controls-title">
 -      <h2 id="controls-title">Controls</h2>
 -      <div id="keys">
@@ -160,17 +165,51 @@
 -      <div class="row">
 -        <button type="button" class="btn" id="export">Download a backup</button>
 -        <label class="btn file-btn">Restore a backup<input type="file" id="import"></label>
--      </div>
++      <div class="screen-strip"><span><kbd>Enter</kbd> Start</span><span><kbd>F9</kbd> Menu while playing</span></div>
++      <div class="mobile-pwa-note" id="mobile-pwa-note">
++        <div class="pwa-header">
++          <svg class="pwa-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
++            <rect x="5" y="2" width="14" height="20" rx="3"></rect>
++            <path d="M12 18h.01"></path>
++          </svg>
++          <span class="pwa-title">Mobile Fullscreen Setup</span>
++        </div>
++        <p class="pwa-desc">Install as a Web App to play borderless in true fullscreen without browser address bars:</p>
++        <div class="pwa-grid">
++          <div class="pwa-card">
++            <div class="pwa-os">
++              <span class="pwa-tag">iPhone (Safari)</span>
++            </div>
++            <ol class="pwa-list">
++              <li>Tap <strong>Share</strong> <span class="pwa-badge">⎋</span> (square with arrow)</li>
++              <li>Select <strong>Add to Home Screen</strong> <span class="pwa-badge">＋</span></li>
++              <li>Launch from your <strong>Home Screen</strong></li>
++            </ol>
++          </div>
++          <div class="pwa-card">
++            <div class="pwa-os">
++              <span class="pwa-tag">Android (Chrome)</span>
++            </div>
++            <ol class="pwa-list">
++              <li>Tap <strong>Menu</strong> <span class="pwa-badge">⋮</span> (three dots at top right)</li>
++              <li>Select <strong>Install app</strong> or <strong>Add to Home screen</strong></li>
++              <li>Launch from your <strong>Home Screen</strong></li>
++            </ol>
++            <button type="button" class="btn" id="pwa-install-btn" style="display: none; margin-top: 10px; height: 32px; font-size: 12px; padding: 0 14px;">Install App</button>
++          </div>
++        </div>
+       </div>
 -      <p class="msg" id="saves-msg" role="status"></p>
 -      <p class="msg warn" id="storage-note" hidden></p>
 -    </section>
--
+ 
 -    <section class="panel" id="online" aria-labelledby="online-title">
 -      <h2 id="online-title">Online</h2>
 -      <p class="hint" id="online-note" hidden></p>
 -      <div id="online-body"></div>
 -    </section>
--
++    </div>
+ 
 -    <section class="panel" id="settings" aria-labelledby="settings-title">
 +    <div class="menu-screen" id="screen-options" data-menu-screen="options" hidden>
 +      <section class="panel" id="settings" aria-labelledby="settings-title">
@@ -183,14 +222,13 @@
          <summary>Edit settings.ini as text</summary>
          <textarea id="settings-text" spellcheck="false" rows="20" wrap="off" aria-label="settings.ini"></textarea>
          <div class="row">
-@@ -150,8 +86,24 @@
+@@ -150,8 +123,25 @@
          </div>
        </details>
      </section>
 +      <p class="screen-note">For transmission, difficulty and the music / effects mix, use Options inside the game.</p>
 +    </div>
- 
--    <section class="panel" id="game-data" aria-labelledby="game-data-title">
++
 +    <div class="menu-screen" id="screen-controls" data-menu-screen="controls" hidden>
 +      <section class="panel" id="controls" aria-labelledby="controls-title">
 +        <h2 id="controls-title">Controls</h2>
@@ -199,20 +237,23 @@
 +          <dl class="keys"><div><dt><kbd>F10</kbd></dt><dd>Turn key remapping off or on while playing</dd></div><div><dt><kbd>F9</kbd></dt><dd>Open the game menu</dd></div><div><dt><kbd>Enter</kbd></dt><dd>Launch the game</dd></div></dl>
 +          <p class="hint">Hold Escape to leave fullscreen.</p>
 +        </div>
++        <div id="touch-controls"></div>
 +        <div id="keyboard-controls"></div>
 +        <div id="controller-settings"></div>
 +      </section>
 +    </div>
-+
+ 
+-    <section class="panel" id="game-data" aria-labelledby="game-data-title">
 +    <div class="menu-screen" id="screen-storage" data-menu-screen="storage" hidden>
 +      <section class="panel" id="game-data" aria-labelledby="game-data-title">
        <h2 id="game-data-title">Game data on this PC</h2>
        <p class="hint" id="cache-info">Counting…</p>
        <div class="bar" id="data-bar" role="progressbar" aria-label="Game data preload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
-@@ -163,13 +114,31 @@
+@@ -163,14 +153,33 @@
        </div>
        <p class="msg" id="data-msg" role="status"></p>
      </section>
+-  </div>
 +      <section class="panel" id="saves" aria-labelledby="saves-title">
 +        <h2 id="saves-title">Save data</h2>
 +        <ul class="profiles" id="profiles" aria-label="Profiles in this browser"></ul>
@@ -224,7 +265,6 @@
 +        <p class="msg" id="saves-msg" role="status"></p>
 +        <p class="msg warn" id="storage-note" hidden></p>
 +      </section>
--  </div>
 +      <p class="screen-note">Game data is cached in this browser. Clearing browser site data can also remove your local settings and saves.</p>
 +    </div>
  
@@ -243,9 +283,11 @@
  
 +
  <div class="stage" id="stage" hidden>
++  <button type="button" class="stage-menu" id="stage-menu" aria-label="Menu" data-nfsu2-ui="" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
    <div class="hud-fps" id="fps" hidden></div>
    <div class="toast" id="toast" hidden></div>
-@@ -194,7 +164,6 @@
+   <div class="toast away" id="away" role="status" hidden></div>
+@@ -194,7 +203,6 @@
    <div class="menu-actions">
      <button type="button" class="btn selected" data-act="resume">Back to the game</button>
      <button type="button" class="btn" data-act="fullscreen">Full screen</button>

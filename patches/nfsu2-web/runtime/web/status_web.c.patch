@@ -1,0 +1,61 @@
+--- a/runtime/web/status_web.c
++++ b/runtime/web/status_web.c
+@@ -6,6 +6,7 @@
+  * frame rate rather than the page's display rate. */
+ #include "status_proto.h"
+ #include "host_abi.h"
++#include "../cpu.h"
+ #include <pthread.h>
+ #include <string.h>
+ #include <time.h>
+@@ -53,13 +54,36 @@
+  * app review, finding 1). */
+ static void *status_main(void *unused){
+     (void)unused;
+-    int slot[5] = { host_status_slot("frames"), host_status_slot("frames_t"), host_status_slot("frames_dropped"),
+-                    host_status_slot("tris"), host_status_slot("textures") };
++    int slot[6] = { host_status_slot("frames"), host_status_slot("frames_t"), host_status_slot("frames_dropped"),
++                    host_status_slot("tris"), host_status_slot("textures"), host_status_slot("drive") };
+     for (;;){
+         struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts);
+-        double v[5] = { (double)metal_frames(), ts.tv_sec * 1e3 + ts.tv_nsec * 1e-6, (double)metal_frames_dropped(),
+-                        (double)metal_tris(), (double)metal_tex_created() - (double)metal_tex_released() };
+-        host_status_set_n(slot, v, 5);
++        long frames = metal_frames();
++        int in_race = mem_is_committed(0x0077A920u) && MR32(0x0077A920u) == 6u;
++        int drive = 0;
++        if (in_race){
++            uint32_t rdir = mem_is_committed(0x007361F0u) ? MR32(0x007361F0u) : 0;
++            uint32_t cars = mem_is_committed(0x007361F8u) ? MR32(0x007361F8u) : 0;
++            int car_ready = rdir && cars && mem_is_committed(cars + 0x28u) && MR32(cars + 0x28u) != 0;
++            if (car_ready){
++                drive = 1;
++                int manual = 0;
++                if (mem_is_committed(0x00748F78u) && MR32(0x00748F78u) == 1u) manual = 1;
++                if (mem_is_committed(0x0073619Cu)){
++                    uint32_t rcfg = MR32(0x0073619Cu);
++                    if (rcfg && mem_is_committed(rcfg) && MR32(rcfg) == 4u) manual = 1;
++                }
++                if (manual) drive |= 4;
++
++                int paused = 0;
++                if (mem_is_committed(0x007796A8u) && (int32_t)MR32(0x007796A8u) > 0) paused = 1;
++                if (paused) drive |= 8;
++            }
++        }
++        double v[6] = { (double)frames, ts.tv_sec * 1e3 + ts.tv_nsec * 1e-6, (double)metal_frames_dropped(),
++                        (double)metal_tris(), (double)metal_tex_created() - (double)metal_tex_released(),
++                        (double)drive };
++        host_status_set_n(slot, v, 6);
+         usleep(g_st.period_ms * 1000u);
+     }
+     return 0;
+@@ -68,7 +92,7 @@
+ /* main_web.c, before the guest starts */
+ void status_web_start(void){
+     g_st.magic = HOST_STATUS_MAGIC;
+-    g_st.period_ms = 250;
++    g_st.period_ms = 100;
+     nfsu2_register(HOST_KIND_STATUS, &g_st, sizeof g_st);
+     pthread_attr_t at; pthread_attr_init(&at);
+     pthread_attr_setstacksize(&at, 64u * 1024u);
